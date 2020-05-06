@@ -1,0 +1,3 @@
+loss:
+  class_name: src.utils.custom_loss_functions.WRMSSE
+  params:

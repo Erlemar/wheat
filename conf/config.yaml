@@ -1,0 +1,17 @@
+defaults:
+  - dataset: wheat
+  - trainer: default_trainer
+  - training: default_training
+  - logging: tensorboard
+  - optimizer: adamw
+  - scheduler: plateau
+  - model: basic_fastrcnn
+  - callbacks: callbacks
+  - private: custom
+  - data: data
+  - augmentation: basic_augs
+
+general:
+  save_dir: logs/
+  workspace: erlemar
+  project_name: wheat

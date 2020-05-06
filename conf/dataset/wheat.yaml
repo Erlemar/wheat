@@ -1,0 +1,2 @@
+dataset:
+  class_name: src.utils.dataset.WheatDataset

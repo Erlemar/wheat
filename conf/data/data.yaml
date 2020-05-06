@@ -1,0 +1,4 @@
+data:
+  folder_path: data/
+  num_workers: 0
+  batch_size: 2

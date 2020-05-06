@@ -1,0 +1,5 @@
+training:
+  lr: 0.0001
+  metric: main_score
+  seed: 666
+  debug: True

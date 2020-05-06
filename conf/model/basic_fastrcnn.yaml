@@ -1,0 +1,10 @@
+model:
+  backbone:
+    class_name: torchvision.models.detection.fasterrcnn_resnet50_fpn
+    params:
+      pretrained: True
+
+  head:
+    class_name: torchvision.models.detection.faster_rcnn.FastRCNNPredictor
+    params:
+      num_classes: 2
