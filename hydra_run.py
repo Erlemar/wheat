@@ -7,7 +7,7 @@ from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
 
 from src.lightning_classes.lightning_wheat import LitWheat
 from src.utils.utils import set_seed, save_useful_info
-
+import torch
 
 def run(cfg: DictConfig):
     """
@@ -40,6 +40,9 @@ def run(cfg: DictConfig):
                          gradient_clip_val=0.5,
                          **cfg.trainer)
     trainer.fit(model)
+
+    # save as a simple torch model
+    torch.save(model.model.state_dict(), f"{os.getcwd().split('\\')[-1]}.pth")
 
 
 @hydra.main(config_path="conf/config.yaml")
