@@ -42,7 +42,8 @@ def run(cfg: DictConfig):
     trainer.fit(model)
 
     # save as a simple torch model
-    torch.save(model.model.state_dict(), f"{os.getcwd().split('\\')[-1]}.pth")
+    model_name = "{os.getcwd().split('\\')[-1]}.pth"
+    torch.save(model.model.state_dict(), model_name)
 
 
 @hydra.main(config_path="conf/config.yaml")
