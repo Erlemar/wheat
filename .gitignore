@@ -7,6 +7,7 @@ __pycache__/
 private.yaml
 outputs/
 notebooks/
+.idea
 
 # C extensions
 *.so
