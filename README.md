@@ -1,9 +1,9 @@
 # wheat_detection
-This is my repository with a baseline model for (Wheat Detection challenge on Kaggle)[https://www.kaggle.com/c/global-wheat-detection]
+This is my repository with a baseline model for [Wheat Detection challenge on Kaggle](https://www.kaggle.com/c/global-wheat-detection)
 
 Main frameworks used:
-* (hydra)[https://github.com/facebookresearch/hydra]
-* (pytorch-lightning)[https://github.com/PyTorchLightning/pytorch-lightning]
+* [hydra](https://github.com/facebookresearch/hydra)
+* [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning)
 
 To use it for training, perform the following steps:
 * download the data, unzip in and put in some folder;
