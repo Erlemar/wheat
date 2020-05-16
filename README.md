@@ -7,7 +7,7 @@ Main frameworks used:
 
 To use it for training, perform the following steps:
 * download the data, unzip in and put in some folder;
-* define that folder in config conf/data.yaml key - data.folder_path
+* define that folder in config conf/data/data.yaml as a value of the key `data.folder_path`
 * run run_hydra.py script
 
 There is no script for prediction, because in this competition we have to make prediction in kernels.
