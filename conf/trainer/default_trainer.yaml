@@ -4,3 +4,4 @@ trainer:
   accumulate_grad_batches: 1
   profiler: False
   max_epochs: 2
+  log_save_interval: 100

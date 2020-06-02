@@ -6,8 +6,9 @@ from omegaconf import DictConfig
 from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
 
 from src.lightning_classes.lightning_wheat import LitWheat
-from src.utils.utils import set_seed, save_useful_info
+from src.utils.utils import set_seed, save_useful_info, flatten_omegaconf
 import torch
+
 
 def run(cfg: DictConfig):
     """
@@ -20,8 +21,9 @@ def run(cfg: DictConfig):
 
     """
     set_seed(cfg.training.seed)
+    hparams = flatten_omegaconf(cfg)
 
-    model = LitWheat(hparams=cfg)
+    model = LitWheat(hparams=hparams, cfg=cfg)
 
     early_stopping = pl.callbacks.EarlyStopping(**cfg.callbacks.early_stopping.params)
     model_checkpoint = pl.callbacks.ModelCheckpoint(**cfg.callbacks.model_checkpoint.params)
@@ -33,7 +35,8 @@ def run(cfg: DictConfig):
                                # api_key=cfg.private.comet_api,
                                experiment_name=os.getcwd().split('\\')[-1])
 
-    trainer = pl.Trainer(logger=[tb_logger, comet_logger],
+    trainer = pl.Trainer(logger=[tb_logger, comet_logger
+                                 ],
                          early_stop_callback=early_stopping,
                          checkpoint_callback=model_checkpoint,
                          nb_sanity_val_steps=0,
@@ -42,7 +45,8 @@ def run(cfg: DictConfig):
     trainer.fit(model)
 
     # save as a simple torch model
-    model_name = "{os.getcwd().split('\\')[-1]}.pth"
+    model_name = os.getcwd().split('\\')[-1] + ".pth"
+    print(model_name)
     torch.save(model.model.state_dict(), model_name)
 
 

@@ -12,31 +12,33 @@ from src.utils.utils import load_obj, collate_fn
 
 class LitWheat(pl.LightningModule):
 
-    def __init__(self, hparams: DictConfig = None):
+    def __init__(self, hparams: DictConfig = None, cfg: DictConfig = None):
         super(LitWheat, self).__init__()
+        self.cfg = cfg
         self.hparams = hparams
-        self.model = get_wheat_model(self.hparams)
+        self.model = get_wheat_model(self.cfg)
+        self.hparams['n_params'] = sum(p.numel() for p in self.model.parameters())
 
     def forward(self, x, *args, **kwargs):
         return self.model(x)
 
     def prepare_data(self):
-        datasets = get_training_datasets(self.hparams)
+        datasets = get_training_datasets(self.cfg)
         self.train_dataset = datasets['train']
         self.valid_dataset = datasets['valid']
 
     def train_dataloader(self):
         train_loader = torch.utils.data.DataLoader(self.train_dataset,
-                                                   batch_size=self.hparams.data.batch_size,
-                                                   num_workers=self.hparams.data.num_workers,
+                                                   batch_size=self.cfg.data.batch_size,
+                                                   num_workers=self.cfg.data.num_workers,
                                                    shuffle=True,
                                                    collate_fn=collate_fn)
         return train_loader
 
     def val_dataloader(self):
         valid_loader = torch.utils.data.DataLoader(self.valid_dataset,
-                                                   batch_size=self.hparams.data.batch_size,
-                                                   num_workers=self.hparams.data.num_workers,
+                                                   batch_size=self.cfg.data.batch_size,
+                                                   num_workers=self.cfg.data.num_workers,
                                                    shuffle=False,
                                                    collate_fn=collate_fn)
 
@@ -48,11 +50,10 @@ class LitWheat(pl.LightningModule):
         return valid_loader
 
     def configure_optimizers(self):
-        optimizer = load_obj(self.hparams.optimizer.class_name)(self.model.parameters(),
-                                                                **self.hparams.optimizer.params)
-        scheduler = load_obj(self.hparams.scheduler.class_name)(optimizer, **self.hparams.scheduler.params)
+        optimizer = load_obj(self.cfg.optimizer.class_name)(self.net.parameters(), **self.cfg.optimizer.params)
+        scheduler = load_obj(self.cfg.scheduler.class_name)(optimizer, **self.cfg.scheduler.params)
 
-        return [optimizer], [scheduler]
+        return [optimizer], [{"scheduler": scheduler, "interval": self.cfg.scheduler.step}]
 
     def training_step(self, batch, batch_idx):
         images, targets, image_ids = batch

@@ -1,14 +1,15 @@
+import collections
 import importlib
 import os
 import random
+import shutil
 from itertools import product
 from typing import Any, Dict, List
 
+import hydra
 import numpy as np
 import torch
-from omegaconf import DictConfig
-import shutil
-import hydra
+from omegaconf import DictConfig, OmegaConf
 
 
 def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
@@ -53,3 +54,80 @@ def collate_fn(batch):
     return tuple(zip(*batch))
 
 
+def format_prediction_string(boxes, scores):
+    pred_strings = []
+    for s, b in zip(scores, boxes.astype(int)):
+        pred_strings.append(f'{s:.4f} {b[0]} {b[1]} {b[2] - b[0]} {b[3] - b[1]}')
+
+    return " ".join(pred_strings)
+
+
+
+def product_dict(**kwargs) -> List[List]:
+    """
+    Convert dict with lists in values into lists of all combinations
+
+    This is necessary to convert config with experiment values
+    into format usable by hydra
+    Args:
+        **kwargs:
+
+    Returns:
+        list of lists
+
+    ---
+    Example:
+        >>> list_dict = {'a': [1, 2], 'b': [2, 3]}
+        >>> list(product_dict(**list_dict))
+        >>> [['a=1', 'b=2'], ['a=1', 'b=3'], ['a=2', 'b=2'], ['a=2', 'b=3']]
+
+    """
+    keys = kwargs.keys()
+    vals = kwargs.values()
+    for instance in product(*vals):
+        zip_list = list(zip(keys, instance))
+        yield [f'{i}={j}' for i, j in zip_list]
+
+
+def config_to_hydra_dict(cfg: DictConfig) -> Dict:
+    """
+    Convert config into dict with lists of values, where key is full name of parameter
+
+    This fuction is used to get key names which can be used in hydra.
+
+    Args:
+        cfg:
+
+    Returns:
+
+    """
+    experiment_dict = {}
+    for k, v in cfg.items():
+        for k1, v1 in v.items():
+            experiment_dict[f'{k}.{k1}'] = v1
+
+    return experiment_dict
+
+
+def flatten_omegaconf(d, sep="_"):
+
+    d = OmegaConf.to_container(d)
+
+    obj = collections.OrderedDict()
+
+    def recurse(t, parent_key=""):
+
+        if isinstance(t, list):
+            for i in range(len(t)):
+                recurse(t[i], parent_key + sep + str(i) if parent_key else str(i))
+        elif isinstance(t, dict):
+            for k, v in t.items():
+                recurse(v, parent_key + sep + k if parent_key else k)
+        else:
+            obj[parent_key] = t
+
+    recurse(d)
+    obj = {k: v for k, v in obj.items() if type(v) in [int, float]}
+    # obj = {k: v for k, v in obj.items()}
+
+    return obj

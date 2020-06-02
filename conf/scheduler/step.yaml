@@ -1,5 +1,6 @@
 scheduler:
   class_name: torch.optim.lr_scheduler.StepLR
+  step: epoch
   params:
     step_size: 10
     gamma: 0.9
