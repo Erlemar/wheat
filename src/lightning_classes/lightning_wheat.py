@@ -50,7 +50,7 @@ class LitWheat(pl.LightningModule):
         return valid_loader
 
     def configure_optimizers(self):
-        optimizer = load_obj(self.cfg.optimizer.class_name)(self.net.parameters(), **self.cfg.optimizer.params)
+        optimizer = load_obj(self.cfg.optimizer.class_name)(self.model.parameters(), **self.cfg.optimizer.params)
         scheduler = load_obj(self.cfg.scheduler.class_name)(optimizer, **self.cfg.scheduler.params)
 
         return [optimizer], [{"scheduler": scheduler, "interval": self.cfg.scheduler.step}]
@@ -79,5 +79,6 @@ class LitWheat(pl.LightningModule):
         self.coco_evaluator.summarize()
         # coco main metric
         metric = self.coco_evaluator.coco_eval['bbox'].stats[0]
+        metric = torch.as_tensor(metric)
         tensorboard_logs = {'main_score': metric}
         return {'val_loss': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
