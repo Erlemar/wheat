@@ -15,3 +15,4 @@ general:
   save_dir: logs/
   workspace: erlemar
   project_name: wheat
+  device: cuda

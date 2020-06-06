@@ -27,18 +27,20 @@ def run(cfg: DictConfig):
 
     early_stopping = pl.callbacks.EarlyStopping(**cfg.callbacks.early_stopping.params)
     model_checkpoint = pl.callbacks.ModelCheckpoint(**cfg.callbacks.model_checkpoint.params)
+    lr_logger = pl.callbacks.LearningRateLogger()
 
     tb_logger = TensorBoardLogger(save_dir=cfg.general.save_dir)
-    comet_logger = CometLogger(save_dir=cfg.general.save_dir,
-                               workspace=cfg.general.workspace,
-                               project_name=cfg.general.project_name,
-                               # api_key=cfg.private.comet_api,
-                               experiment_name=os.getcwd().split('\\')[-1])
+    # comet_logger = CometLogger(save_dir=cfg.general.save_dir,
+    #                            workspace=cfg.general.workspace,
+    #                            project_name=cfg.general.project_name,
+    #                            api_key=cfg.private.comet_api,
+    #                            experiment_name=os.getcwd().split('\\')[-1])
 
-    trainer = pl.Trainer(logger=[tb_logger, comet_logger
+    trainer = pl.Trainer(logger=[tb_logger#, comet_logger
                                  ],
                          early_stop_callback=early_stopping,
                          checkpoint_callback=model_checkpoint,
+                         callbacks=[lr_logger],
                          nb_sanity_val_steps=0,
                          gradient_clip_val=0.5,
                          **cfg.trainer)

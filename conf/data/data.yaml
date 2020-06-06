@@ -1,4 +1,4 @@
 data:
-  folder_path: data/
+  folder_path: f:/wheat
   num_workers: 0
-  batch_size: 2
+  batch_size: 4

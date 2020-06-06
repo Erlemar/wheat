@@ -62,7 +62,6 @@ def format_prediction_string(boxes, scores):
     return " ".join(pred_strings)
 
 
-
 def product_dict(**kwargs) -> List[List]:
     """
     Convert dict with lists in values into lists of all combinations
