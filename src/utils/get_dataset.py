@@ -1,4 +1,5 @@
 import ast
+from typing import Dict
 
 import albumentations as A
 import numpy as np
@@ -10,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from src.utils.utils import load_obj
 
 
-def get_training_datasets(cfg: DictConfig) -> dict:
+def get_training_datasets(cfg: DictConfig) -> Dict:
     """
     Get datases for modelling
 
@@ -18,13 +19,14 @@ def get_training_datasets(cfg: DictConfig) -> dict:
         cfg: config
 
     Returns:
-
+        dict with datasets
     """
 
     train = pd.read_csv(f'{cfg.data.folder_path}/train.csv')
 
-    train[['x', 'y', 'w', 'h']] = pd.DataFrame(
-        np.stack(train['bbox'].apply(lambda x: ast.literal_eval(x)))).astype(np.float32)
+    train[['x', 'y', 'w', 'h']] = pd.DataFrame(np.stack(train['bbox'].apply(lambda x: ast.literal_eval(x)))).astype(
+        np.float32
+    )
 
     # precalculate some values
     train['x1'] = train['x'] + train['w']
@@ -54,22 +56,14 @@ def get_training_datasets(cfg: DictConfig) -> dict:
     valid_bbox_params = OmegaConf.to_container((cfg['augmentation']['valid']['bbox_params']))
     valid_augs = A.Compose(valid_augs_list, bbox_params=valid_bbox_params)
 
-    train_dataset = dataset_class(train_df,
-                                  'train',
-                                  train_img_dir,
-                                  cfg,
-                                  train_augs)
+    train_dataset = dataset_class(train_df, 'train', train_img_dir, cfg, train_augs)
 
-    valid_dataset = dataset_class(valid_df,
-                                  'valid',
-                                  train_img_dir,
-                                  cfg,
-                                  valid_augs)
+    valid_dataset = dataset_class(valid_df, 'valid', train_img_dir, cfg, valid_augs)
 
     return {'train': train_dataset, 'valid': valid_dataset}
 
 
-def get_test_dataset(cfg: DictConfig):
+def get_test_dataset(cfg: DictConfig) -> object:
     """
     Get test dataset
 
@@ -77,7 +71,7 @@ def get_test_dataset(cfg: DictConfig):
         cfg:
 
     Returns:
-
+        test dataset
     """
 
     test_img_dir = f'{cfg.data.folder_path}/test'
@@ -87,10 +81,6 @@ def get_test_dataset(cfg: DictConfig):
     valid_augs = A.Compose(valid_augs_list, bbox_params=valid_bbox_params)
     dataset_class = load_obj(cfg.dataset.class_name)
 
-    test_dataset = dataset_class(None,
-                                 'test',
-                                 test_img_dir,
-                                 cfg,
-                                 valid_augs)
+    test_dataset = dataset_class(None, 'test', test_img_dir, cfg, valid_augs)
 
     return test_dataset

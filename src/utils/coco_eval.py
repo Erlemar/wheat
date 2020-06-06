@@ -1,33 +1,29 @@
+import copy
 import json
-import tempfile
+from collections import defaultdict
+from typing import Union, List, Tuple, Dict
 
 import numpy as np
-import copy
-import time
+import pycocotools.mask as mask_util
 import torch
 import torch._six
-
-from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
-import pycocotools.mask as mask_util
+from pycocotools.cocoeval import COCOeval
 
-from collections import defaultdict
 from src.utils import detection_utils as utils
 
 
 class CocoEvaluator(object):
-    def __init__(self, coco_gt, iou_types):
+    def __init__(self, coco_gt: COCO, iou_types: Union[List, Tuple]):
         assert isinstance(iou_types, (list, tuple))
         coco_gt = copy.deepcopy(coco_gt)
         self.coco_gt = coco_gt
 
         self.iou_types = iou_types
-        self.coco_eval = {}
-        for iou_type in iou_types:
-            self.coco_eval[iou_type] = COCOeval(coco_gt, iouType=iou_type)
+        self.coco_eval = {iou_type: COCOeval(coco_gt, iouType=iou_type) for iou_type in iou_types}
 
-        self.img_ids = []
-        self.eval_imgs = {k: [] for k in iou_types}
+        self.img_ids: List[str] = []
+        self.eval_imgs: Dict[Union[List, Tuple], np.array] = {k: [] for k in iou_types}
 
     def update(self, predictions):
         img_ids = list(np.unique(list(predictions.keys())))
@@ -56,18 +52,18 @@ class CocoEvaluator(object):
 
     def summarize(self):
         for iou_type, coco_eval in self.coco_eval.items():
-            print("IoU metric: {}".format(iou_type))
+            print(f'IoU metric: {iou_type}')
             coco_eval.summarize()
 
     def prepare(self, predictions, iou_type):
-        if iou_type == "bbox":
+        if iou_type == 'bbox':
             return self.prepare_for_coco_detection(predictions)
-        elif iou_type == "segm":
+        elif iou_type == 'segm':
             return self.prepare_for_coco_segmentation(predictions)
-        elif iou_type == "keypoints":
+        elif iou_type == 'keypoints':
             return self.prepare_for_coco_keypoint(predictions)
         else:
-            raise ValueError("Unknown iou type {}".format(iou_type))
+            raise ValueError(f'Unknown iou type {iou_type}')
 
     def prepare_for_coco_detection(self, predictions):
         coco_results = []
@@ -75,19 +71,14 @@ class CocoEvaluator(object):
             if len(prediction) == 0:
                 continue
 
-            boxes = prediction["boxes"]
+            boxes = prediction['boxes']
             boxes = convert_to_xywh(boxes).tolist()
-            scores = prediction["scores"].tolist()
-            labels = prediction["labels"].tolist()
+            scores = prediction['scores'].tolist()
+            labels = prediction['labels'].tolist()
 
             coco_results.extend(
                 [
-                    {
-                        "image_id": original_id,
-                        "category_id": labels[k],
-                        "bbox": box,
-                        "score": scores[k],
-                    }
+                    {'image_id': original_id, 'category_id': labels[k], 'bbox': box, 'score': scores[k]}
                     for k, box in enumerate(boxes)
                 ]
             )
@@ -99,30 +90,24 @@ class CocoEvaluator(object):
             if len(prediction) == 0:
                 continue
 
-            scores = prediction["scores"]
-            labels = prediction["labels"]
-            masks = prediction["masks"]
+            scores = prediction['scores']
+            labels = prediction['labels']
+            masks = prediction['masks']
 
             masks = masks > 0.5
 
-            scores = prediction["scores"].tolist()
-            labels = prediction["labels"].tolist()
+            scores = prediction['scores'].tolist()
+            labels = prediction['labels'].tolist()
 
             rles = [
-                mask_util.encode(np.array(mask[0, :, :, np.newaxis], dtype=np.uint8, order="F"))[0]
-                for mask in masks
+                mask_util.encode(np.array(mask[0, :, :, np.newaxis], dtype=np.uint8, order='F'))[0] for mask in masks
             ]
             for rle in rles:
-                rle["counts"] = rle["counts"].decode("utf-8")
+                rle['counts'] = rle['counts'].decode('utf-8')
 
             coco_results.extend(
                 [
-                    {
-                        "image_id": original_id,
-                        "category_id": labels[k],
-                        "segmentation": rle,
-                        "score": scores[k],
-                    }
+                    {'image_id': original_id, 'category_id': labels[k], 'segmentation': rle, 'score': scores[k]}
                     for k, rle in enumerate(rles)
                 ]
             )
@@ -134,21 +119,16 @@ class CocoEvaluator(object):
             if len(prediction) == 0:
                 continue
 
-            boxes = prediction["boxes"]
+            boxes = prediction['boxes']
             boxes = convert_to_xywh(boxes).tolist()
-            scores = prediction["scores"].tolist()
-            labels = prediction["labels"].tolist()
-            keypoints = prediction["keypoints"]
+            scores = prediction['scores'].tolist()
+            labels = prediction['labels'].tolist()
+            keypoints = prediction['keypoints']
             keypoints = keypoints.flatten(start_dim=1).tolist()
 
             coco_results.extend(
                 [
-                    {
-                        "image_id": original_id,
-                        "category_id": labels[k],
-                        'keypoints': keypoint,
-                        "score": scores[k],
-                    }
+                    {'image_id': original_id, 'category_id': labels[k], 'keypoints': keypoint, 'score': scores[k]}
                     for k, keypoint in enumerate(keypoints)
                 ]
             )
@@ -199,6 +179,7 @@ def create_common_coco_eval(coco_eval, img_ids, eval_imgs):
 
 # Ideally, pycocotools wouldn't have hard-coded prints
 # so that we could avoid copy-pasting those two functions
+
 
 def createIndex(self):
     # create index
@@ -254,8 +235,9 @@ def loadRes(self, resFile):
         anns = resFile
     assert type(anns) == list, 'results in not an array of objects'
     annsImgIds = [ann['image_id'] for ann in anns]
-    assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
-        'Results do not correspond to current coco set'
+    assert set(annsImgIds) == (
+        set(annsImgIds) & set(self.getImgIds())
+    ), 'Results do not correspond to current coco set'
     if 'caption' in anns[0]:
         imgIds = set([img['id'] for img in res.dataset['images']]) & set([ann['image_id'] for ann in anns])
         res.dataset['images'] = [img for img in res.dataset['images'] if img['id'] in imgIds]
@@ -298,17 +280,17 @@ def loadRes(self, resFile):
 
 
 def evaluate(self):
-    '''
+    """
     Run per image evaluation on given images and store results (a list of dict) in self.evalImgs
     :return: None
-    '''
+    """
     # tic = time.time()
     # print('Running per image evaluation...')
     p = self.params
     # add backward compatibility if useSegm is specified in params
     if p.useSegm is not None:
         p.iouType = 'segm' if p.useSegm == 1 else 'bbox'
-        print('useSegm (deprecated) is not None. Running {} evaluation'.format(p.iouType))
+        print(f'useSegm (deprecated) is not None. Running {p.iouType} evaluation')
     # print('Evaluate annotation type *{}*'.format(p.iouType))
     p.imgIds = list(np.unique(p.imgIds))
     if p.useCats:
@@ -324,18 +306,12 @@ def evaluate(self):
         computeIoU = self.computeIoU
     elif p.iouType == 'keypoints':
         computeIoU = self.computeOks
-    self.ious = {
-        (imgId, catId): computeIoU(imgId, catId)
-        for imgId in p.imgIds
-        for catId in catIds}
+    self.ious = {(imgId, catId): computeIoU(imgId, catId) for imgId in p.imgIds for catId in catIds}
 
     evaluateImg = self.evaluateImg
     maxDet = p.maxDets[-1]
     evalImgs = [
-        evaluateImg(imgId, catId, areaRng, maxDet)
-        for catId in catIds
-        for areaRng in p.areaRng
-        for imgId in p.imgIds
+        evaluateImg(imgId, catId, areaRng, maxDet) for catId in catIds for areaRng in p.areaRng for imgId in p.imgIds
     ]
     # this is NOT in the pycocotools code, but could be done outside
     evalImgs = np.asarray(evalImgs).reshape(len(catIds), len(p.areaRng), len(p.imgIds))
@@ -343,6 +319,7 @@ def evaluate(self):
     # toc = time.time()
     # print('DONE (t={:0.2f}s).'.format(toc-tic))
     return p.imgIds, evalImgs
+
 
 #################################################################
 # end of straight copy from pycocotools, just removing the prints

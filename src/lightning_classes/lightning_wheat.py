@@ -1,3 +1,5 @@
+from typing import Dict
+
 import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig
@@ -11,13 +13,13 @@ from src.utils.utils import load_obj, collate_fn
 
 
 class LitWheat(pl.LightningModule):
-
-    def __init__(self, hparams: DictConfig = None, cfg: DictConfig = None):
+    def __init__(self, hparams: Dict[str, float], cfg: DictConfig):
         super(LitWheat, self).__init__()
         self.cfg = cfg
-        self.hparams = hparams
+        self.hparams: Dict[str, float] = hparams
         self.model = get_wheat_model(self.cfg)
-        self.hparams['n_params'] = sum(p.numel() for p in self.model.parameters())
+        # if hasattr(self.model, 'parameters'):
+        #     self.hparams['n_params'] = sum(p.numel() for p in self.model.parameters())
 
     def forward(self, x, *args, **kwargs):
         return self.model(x)
@@ -28,19 +30,23 @@ class LitWheat(pl.LightningModule):
         self.valid_dataset = datasets['valid']
 
     def train_dataloader(self):
-        train_loader = torch.utils.data.DataLoader(self.train_dataset,
-                                                   batch_size=self.cfg.data.batch_size,
-                                                   num_workers=self.cfg.data.num_workers,
-                                                   shuffle=True,
-                                                   collate_fn=collate_fn)
+        train_loader = torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=self.cfg.data.batch_size,
+            num_workers=self.cfg.data.num_workers,
+            shuffle=True,
+            collate_fn=collate_fn,
+        )
         return train_loader
 
     def val_dataloader(self):
-        valid_loader = torch.utils.data.DataLoader(self.valid_dataset,
-                                                   batch_size=self.cfg.data.batch_size,
-                                                   num_workers=self.cfg.data.num_workers,
-                                                   shuffle=False,
-                                                   collate_fn=collate_fn)
+        valid_loader = torch.utils.data.DataLoader(
+            self.valid_dataset,
+            batch_size=self.cfg.data.batch_size,
+            num_workers=self.cfg.data.num_workers,
+            shuffle=False,
+            collate_fn=collate_fn,
+        )
 
         # prepare coco evaluator
         coco = get_coco_api_from_dataset(valid_loader.dataset)
@@ -53,7 +59,7 @@ class LitWheat(pl.LightningModule):
         optimizer = load_obj(self.cfg.optimizer.class_name)(self.model.parameters(), **self.cfg.optimizer.params)
         scheduler = load_obj(self.cfg.scheduler.class_name)(optimizer, **self.cfg.scheduler.params)
 
-        return [optimizer], [{"scheduler": scheduler, "interval": self.cfg.scheduler.step}]
+        return [optimizer], [{'scheduler': scheduler, 'interval': self.cfg.scheduler.step}]
 
     def training_step(self, batch, batch_idx):
         images, targets, image_ids = batch
@@ -69,7 +75,7 @@ class LitWheat(pl.LightningModule):
         images, targets, image_ids = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images, targets)
-        res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        res = {target['image_id'].item(): output for target, output in zip(targets, outputs)}
         self.coco_evaluator.update(res)
 
         return {}

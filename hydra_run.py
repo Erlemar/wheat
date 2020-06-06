@@ -10,14 +10,12 @@ from src.utils.utils import set_seed, save_useful_info, flatten_omegaconf
 import torch
 
 
-def run(cfg: DictConfig):
+def run(cfg: DictConfig) -> None:
     """
     Run pytorch-lightning model
 
     Args:
         cfg: hydra config
-
-    Returns:
 
     """
     set_seed(cfg.training.seed)
@@ -36,28 +34,29 @@ def run(cfg: DictConfig):
     #                            api_key=cfg.private.comet_api,
     #                            experiment_name=os.getcwd().split('\\')[-1])
 
-    trainer = pl.Trainer(logger=[tb_logger#, comet_logger
-                                 ],
-                         early_stop_callback=early_stopping,
-                         checkpoint_callback=model_checkpoint,
-                         callbacks=[lr_logger],
-                         nb_sanity_val_steps=0,
-                         gradient_clip_val=0.5,
-                         **cfg.trainer)
+    trainer = pl.Trainer(
+        logger=[tb_logger],  # , comet_logger
+        early_stop_callback=early_stopping,
+        checkpoint_callback=model_checkpoint,
+        callbacks=[lr_logger],
+        nb_sanity_val_steps=0,
+        gradient_clip_val=0.5,
+        **cfg.trainer,
+    )
     trainer.fit(model)
 
     # save as a simple torch model
-    model_name = os.getcwd().split('\\')[-1] + ".pth"
+    model_name = os.getcwd().split('\\')[-1] + '.pth'
     print(model_name)
     torch.save(model.model.state_dict(), model_name)
 
 
-@hydra.main(config_path="conf/config.yaml")
+@hydra.main(config_path='conf/config.yaml')
 def run_model(cfg: DictConfig) -> None:
     print(cfg.pretty())
     save_useful_info()
     run(cfg)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_model()

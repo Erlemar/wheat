@@ -4,7 +4,7 @@ import os
 import random
 import shutil
 from itertools import product
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Generator
 
 import hydra
 import numpy as np
@@ -12,7 +12,7 @@ import torch
 from omegaconf import DictConfig, OmegaConf
 
 
-def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
+def load_obj(obj_path: str, default_obj_path: str = '') -> Any:
     """
     Extract an object from a given path.
     https://github.com/quantumblacklabs/kedro/blob/9809bd7ca0556531fa4a2fc02d5b2dc26cf8fa97/kedro/utils.py
@@ -24,18 +24,16 @@ def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
         Raises:
             AttributeError: When the object does not have the given named attribute.
     """
-    obj_path_list = obj_path.rsplit(".", 1)
+    obj_path_list = obj_path.rsplit('.', 1)
     obj_path = obj_path_list.pop(0) if len(obj_path_list) > 1 else default_obj_path
     obj_name = obj_path_list[0]
     module_obj = importlib.import_module(obj_path)
     if not hasattr(module_obj, obj_name):
-        raise AttributeError(
-            f"Object `{obj_name}` cannot be loaded from `{obj_path}`."
-        )
+        raise AttributeError(f'Object `{obj_name}` cannot be loaded from `{obj_path}`.')
     return getattr(module_obj, obj_name)
 
 
-def set_seed(seed: int = 666):
+def set_seed(seed: int = 666) -> None:
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.benchmark = False
@@ -45,8 +43,7 @@ def set_seed(seed: int = 666):
 
 
 def save_useful_info():
-    shutil.copytree(os.path.join(hydra.utils.get_original_cwd(), 'src'),
-                    os.path.join(os.getcwd(), 'code/src'))
+    shutil.copytree(os.path.join(hydra.utils.get_original_cwd(), 'src'), os.path.join(os.getcwd(), 'code/src'))
     shutil.copy2(os.path.join(hydra.utils.get_original_cwd(), 'hydra_run.py'), os.path.join(os.getcwd(), 'code'))
 
 
@@ -59,10 +56,10 @@ def format_prediction_string(boxes, scores):
     for s, b in zip(scores, boxes.astype(int)):
         pred_strings.append(f'{s:.4f} {b[0]} {b[1]} {b[2] - b[0]} {b[3] - b[1]}')
 
-    return " ".join(pred_strings)
+    return ' '.join(pred_strings)
 
 
-def product_dict(**kwargs) -> List[List]:
+def product_dict(**kwargs: Dict) -> Generator:
     """
     Convert dict with lists in values into lists of all combinations
 
@@ -98,6 +95,7 @@ def config_to_hydra_dict(cfg: DictConfig) -> Dict:
         cfg:
 
     Returns:
+        converted dict
 
     """
     experiment_dict = {}
@@ -108,13 +106,13 @@ def config_to_hydra_dict(cfg: DictConfig) -> Dict:
     return experiment_dict
 
 
-def flatten_omegaconf(d, sep="_"):
+def flatten_omegaconf(d, sep='_'):
 
     d = OmegaConf.to_container(d)
 
     obj = collections.OrderedDict()
 
-    def recurse(t, parent_key=""):
+    def recurse(t, parent_key=''):
 
         if isinstance(t, list):
             for i in range(len(t)):

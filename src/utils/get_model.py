@@ -1,11 +1,9 @@
 from omegaconf import DictConfig
-from src.utils.utils import load_obj
-from omegaconf import DictConfig
 
 from src.utils.utils import load_obj
 
 
-def get_wheat_model(cfg: DictConfig = None):
+def get_wheat_model(cfg: DictConfig) -> object:
     """
     Get model
 
@@ -13,7 +11,7 @@ def get_wheat_model(cfg: DictConfig = None):
         cfg: config
 
     Returns:
-
+        initialized model
     """
     model = load_obj(cfg.model.backbone.class_name)
     model = model(**cfg.model.backbone.params)

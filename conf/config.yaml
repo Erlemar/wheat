@@ -7,7 +7,7 @@ defaults:
   - scheduler: plateau
   - model: basic_fastrcnn
   - callbacks: callbacks
-  - private: custom
+  - private: default
   - data: data
   - augmentation: basic_augs
 

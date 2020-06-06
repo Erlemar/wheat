@@ -1,3 +1,5 @@
+from typing import Tuple, Dict, Union
+
 import numpy as np
 from torch.utils.data import Dataset
 import pandas as pd
@@ -9,13 +11,9 @@ from albumentations.core.composition import Compose
 
 
 class WheatDataset(Dataset):
-
-    def __init__(self,
-                 dataframe: pd.DataFrame = None,
-                 mode: str = 'train',
-                 image_dir: str = '',
-                 cfg: DictConfig = None,
-                 transforms: Compose = None):
+    def __init__(
+        self, dataframe: pd.DataFrame, cfg: DictConfig, transforms: Compose, mode: str = 'train', image_dir: str = ''
+    ):
         """
         Prepare data for wheat competition.
 
@@ -33,7 +31,7 @@ class WheatDataset(Dataset):
         self.image_ids = os.listdir(self.image_dir) if self.df is None else self.df['image_id'].unique()
         self.transforms = transforms
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> Tuple[np.array, Dict[str, Union[torch.Tensor, np.array]], str]:
         image_id = self.image_ids[idx].split('.')[0]
         # print(image_id)
         image = cv2.imread(f'{self.image_dir}/{image_id}.jpg', cv2.IMREAD_COLOR)
@@ -44,8 +42,10 @@ class WheatDataset(Dataset):
         image /= 255.0
 
         # test dataset must have some values so that transforms work.
-        target = {'labels': torch.as_tensor([[0]], dtype=torch.float32),
-                  'boxes': torch.as_tensor([[0, 0, 0, 0]], dtype=torch.float32)}
+        target = {
+            'labels': torch.as_tensor([[0]], dtype=torch.float32),
+            'boxes': torch.as_tensor([[0, 0, 0, 0]], dtype=torch.float32),
+        }
 
         # for train and valid test create target dict.
         if self.mode != 'test':
@@ -66,21 +66,13 @@ class WheatDataset(Dataset):
             target['iscrowd'] = iscrowd
 
             if self.transforms:
-                image_dict = {
-                    'image': image,
-                    'bboxes': target['boxes'],
-                    'labels': labels
-                }
+                image_dict = {'image': image, 'bboxes': target['boxes'], 'labels': labels}
                 image_dict = self.transforms(**image_dict)
                 image = image_dict['image']
                 target['boxes'] = torch.as_tensor(image_dict['bboxes'], dtype=torch.float32)
 
         else:
-            image_dict = {
-                'image': image,
-                'bboxes': target['boxes'],
-                'labels': target['labels']
-            }
+            image_dict = {'image': image, 'bboxes': target['boxes'], 'labels': target['labels']}
             image = self.transforms(**image_dict)['image']
 
         return image, target, image_id

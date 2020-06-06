@@ -32,15 +32,15 @@ class RandomHorizontalFlip(object):
         if random.random() < self.prob:
             height, width = image.shape[-2:]
             image = image.flip(-1)
-            bbox = target["boxes"]
+            bbox = target['boxes']
             bbox[:, [0, 2]] = width - bbox[:, [2, 0]]
-            target["boxes"] = bbox
-            if "masks" in target:
-                target["masks"] = target["masks"].flip(-1)
-            if "keypoints" in target:
-                keypoints = target["keypoints"]
+            target['boxes'] = bbox
+            if 'masks' in target:
+                target['masks'] = target['masks'].flip(-1)
+            if 'keypoints' in target:
+                keypoints = target['keypoints']
                 keypoints = _flip_coco_person_keypoints(keypoints, width)
-                target["keypoints"] = keypoints
+                target['keypoints'] = keypoints
         return image, target
 
 
