@@ -33,7 +33,6 @@ class WheatDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[np.array, Dict[str, Union[torch.Tensor, np.array]], str]:
         image_id = self.image_ids[idx].split('.')[0]
-        # print(image_id)
         image = cv2.imread(f'{self.image_dir}/{image_id}.jpg', cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
 

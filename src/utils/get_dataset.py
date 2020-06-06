@@ -56,9 +56,9 @@ def get_training_datasets(cfg: DictConfig) -> Dict:
     valid_bbox_params = OmegaConf.to_container((cfg['augmentation']['valid']['bbox_params']))
     valid_augs = A.Compose(valid_augs_list, bbox_params=valid_bbox_params)
 
-    train_dataset = dataset_class(train_df, 'train', train_img_dir, cfg, train_augs)
+    train_dataset = dataset_class(dataframe=train_df, mode='train', image_dir=train_img_dir, cfg=cfg, transforms=train_augs)
 
-    valid_dataset = dataset_class(valid_df, 'valid', train_img_dir, cfg, valid_augs)
+    valid_dataset = dataset_class(dataframe=valid_df, mode='valid', image_dir=train_img_dir, cfg=cfg, transforms=valid_augs)
 
     return {'train': train_dataset, 'valid': valid_dataset}
 
@@ -81,6 +81,6 @@ def get_test_dataset(cfg: DictConfig) -> object:
     valid_augs = A.Compose(valid_augs_list, bbox_params=valid_bbox_params)
     dataset_class = load_obj(cfg.dataset.class_name)
 
-    test_dataset = dataset_class(None, 'test', test_img_dir, cfg, valid_augs)
+    test_dataset = dataset_class(dataframe=None, mode='test', image_dir=test_img_dir, cfg=cfg, transforms=valid_augs)
 
     return test_dataset
