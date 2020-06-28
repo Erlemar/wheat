@@ -3,12 +3,13 @@ callbacks:
     class_name: pl.callbacks.EarlyStopping
     params:
       monitor: ${training.metric}
-      patience: 50
-      mode: min
+      patience: 10
+      mode: ${training.mode}
 
   model_checkpoint:
     class_name: pl.callbacks.ModelCheckpoint
     params:
       monitor: ${training.metric}
-      save_top_k: 1
+      save_top_k: 3
       filepath: saved_models/
+      mode: ${training.mode}

@@ -1,13 +1,17 @@
 import os
-import shutil
+import warnings
+
 import hydra
 import pytorch_lightning as pl
+import torch
 from omegaconf import DictConfig
-from pytorch_lightning.loggers import CometLogger, TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from src.lightning_classes.lightning_wheat import LitWheat
+from src.utils.loggers import JsonLogger
 from src.utils.utils import set_seed, save_useful_info, flatten_omegaconf
-import torch
+
+warnings.filterwarnings("ignore")
 
 
 def run(cfg: DictConfig) -> None:
@@ -33,14 +37,14 @@ def run(cfg: DictConfig) -> None:
     #                            project_name=cfg.general.project_name,
     #                            api_key=cfg.private.comet_api,
     #                            experiment_name=os.getcwd().split('\\')[-1])
+    json_logger = JsonLogger()
 
     trainer = pl.Trainer(
-        logger=[tb_logger],  # , comet_logger
+        logger=[tb_logger, # comet_logger,
+                json_logger],
         early_stop_callback=early_stopping,
         checkpoint_callback=model_checkpoint,
         callbacks=[lr_logger],
-        nb_sanity_val_steps=0,
-        gradient_clip_val=0.5,
         **cfg.trainer,
     )
     trainer.fit(model)

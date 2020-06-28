@@ -1,9 +1,11 @@
+from typing import Any
+
 from omegaconf import DictConfig
 
 from src.utils.utils import load_obj
 
 
-def get_wheat_model(cfg: DictConfig) -> object:
+def get_wheat_model(cfg: DictConfig) -> Any:
     """
     Get model
 

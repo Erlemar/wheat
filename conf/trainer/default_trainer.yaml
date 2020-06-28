@@ -5,3 +5,6 @@ trainer:
   profiler: False
   max_epochs: 2
   log_save_interval: 100
+  gradient_clip_val: 0.5
+  num_sanity_val_steps: 0
+  weights_summary:

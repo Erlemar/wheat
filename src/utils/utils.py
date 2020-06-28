@@ -35,6 +35,7 @@ def load_obj(obj_path: str, default_obj_path: str = '') -> Any:
 
 def set_seed(seed: int = 666) -> None:
     np.random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True

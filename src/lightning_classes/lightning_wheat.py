@@ -56,10 +56,20 @@ class LitWheat(pl.LightningModule):
         return valid_loader
 
     def configure_optimizers(self):
-        optimizer = load_obj(self.cfg.optimizer.class_name)(self.model.parameters(), **self.cfg.optimizer.params)
+        if 'decoder_lr' in self.cfg.optimizer.params.keys():
+            params = [
+                {'params': self.model.decoder.parameters(), 'lr': self.cfg.optimizer.params.lr},
+                {'params': self.model.encoder.parameters(), 'lr': self.cfg.optimizer.params.decoder_lr},
+            ]
+            optimizer = load_obj(self.cfg.optimizer.class_name)(params)
+
+        else:
+            optimizer = load_obj(self.cfg.optimizer.class_name)(self.model.parameters(), **self.cfg.optimizer.params)
         scheduler = load_obj(self.cfg.scheduler.class_name)(optimizer, **self.cfg.scheduler.params)
 
-        return [optimizer], [{'scheduler': scheduler, 'interval': self.cfg.scheduler.step}]
+        return [optimizer], [{'scheduler': scheduler,
+                              'interval': self.cfg.scheduler.step,
+                              'monitor': self.cfg.scheduler.monitor}]
 
     def training_step(self, batch, batch_idx):
         images, targets, image_ids = batch
