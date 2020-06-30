@@ -7,7 +7,7 @@ defaults:
   - scheduler: plateau
   - model: basic_fastrcnn
   - callbacks: callbacks
-  - private: default
+  - private: custom
   - data: data
   - augmentation: basic_augs
 
@@ -16,3 +16,10 @@ general:
   workspace: erlemar
   project_name: wheat
   device: cuda
+
+hydra:
+  run:
+    dir: outputs/${now:%Y_%m_%d_%H_%M_%S}
+  sweep:
+    dir: outputs/
+    subdir: ${now:%Y_%m_%d_%H_%M_%S}

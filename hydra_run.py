@@ -5,7 +5,7 @@ import hydra
 import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig
-from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger, CometLogger
 
 from src.lightning_classes.lightning_wheat import LitWheat
 from src.utils.loggers import JsonLogger

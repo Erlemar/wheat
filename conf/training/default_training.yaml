@@ -3,4 +3,4 @@ training:
   metric: main_score
   mode: "max"
   seed: 666
-  debug: False
+  debug: True

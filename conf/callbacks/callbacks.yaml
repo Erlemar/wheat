@@ -11,5 +11,5 @@ callbacks:
     params:
       monitor: ${training.metric}
       save_top_k: 3
-      filepath: saved_models/
+      filepath: saved_models/{epoch}_{main_score:.4f}
       mode: ${training.mode}

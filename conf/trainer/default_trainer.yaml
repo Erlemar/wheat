@@ -3,7 +3,7 @@ trainer:
   distributed_backend: dp
   accumulate_grad_batches: 1
   profiler: False
-  max_epochs: 2
+  max_epochs: 50
   log_save_interval: 100
   gradient_clip_val: 0.5
   num_sanity_val_steps: 0
