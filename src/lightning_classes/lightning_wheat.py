@@ -49,9 +49,9 @@ class LitWheat(pl.LightningModule):
         )
 
         # prepare coco evaluator
-        coco = get_coco_api_from_dataset(valid_loader.dataset)
-        iou_types = _get_iou_types(self.model)
-        self.coco_evaluator = CocoEvaluator(coco, iou_types)
+        self.coco = get_coco_api_from_dataset(valid_loader.dataset)
+        self.iou_types = _get_iou_types(self.model)
+        self.coco_evaluator = CocoEvaluator(self.coco, self.iou_types)
 
         return valid_loader
 
@@ -91,10 +91,13 @@ class LitWheat(pl.LightningModule):
         return {}
 
     def validation_epoch_end(self, outputs):
+        self.coco_evaluator.synchronize_between_processes()
         self.coco_evaluator.accumulate()
         self.coco_evaluator.summarize()
         # coco main metric
         metric = self.coco_evaluator.coco_eval['bbox'].stats[0]
         metric = torch.as_tensor(metric)
         tensorboard_logs = {'main_score': metric}
+        # re-initialise coco_evaluator after end of each epoch 
+        self.coco_evaluator = CocoEvaluator(self.coco, self.iou_types)
         return {'val_loss': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
