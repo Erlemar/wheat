@@ -1,3 +1,6 @@
+### I forked this because Erlemar stopped at the validation steps issue and I am proposing the changes. The text below does not belong to me.
+
+
 # wheat_detection
 This is my repository with a baseline model for [Wheat Detection challenge on Kaggle](https://www.kaggle.com/c/global-wheat-detection)
 
