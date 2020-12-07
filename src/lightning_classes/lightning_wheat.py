@@ -83,8 +83,10 @@ class LitWheat(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         images, targets, image_ids = batch
-        targets = [{k: v for k, v in t.items()} for t in targets]
+        images = list(img for img in images)
+#         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images, targets)
+        outputs = [{k: v for k, v in t.items()} for t in outputs]
         res = {target['image_id'].item(): output for target, output in zip(targets, outputs)}
         self.coco_evaluator.update(res)
 
