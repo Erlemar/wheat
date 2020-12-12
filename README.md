@@ -1,4 +1,4 @@
-### I forked this because Erlemar stopped at the validation steps issue and I am proposing the changes. The text below does not belong to me.
+### Proposed fix to the validation steps issue.
 
 
 # wheat_detection
