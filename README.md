@@ -1,4 +1,4 @@
-### Proposed fix to the validation steps issue.
+### Proposed fix to the validation steps issue. Please see lightning module.
 
 
 # wheat_detection
