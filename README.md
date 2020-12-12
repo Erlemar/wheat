@@ -1,6 +1,3 @@
-### Proposed fix to the validation steps issue. Please see lightning module.
-
-
 # wheat_detection
 This is my repository with a baseline model for [Wheat Detection challenge on Kaggle](https://www.kaggle.com/c/global-wheat-detection)
 
