@@ -49,9 +49,9 @@ class LitWheat(pl.LightningModule):
         )
 
         # prepare coco evaluator
-        coco = get_coco_api_from_dataset(valid_loader.dataset)
-        iou_types = _get_iou_types(self.model)
-        self.coco_evaluator = CocoEvaluator(coco, iou_types)
+        self.coco = get_coco_api_from_dataset(valid_loader.dataset)
+        self.iou_types = _get_iou_types(self.model)
+        self.coco_evaluator = CocoEvaluator(self.coco, self.iou_types)
 
         return valid_loader
 
@@ -83,18 +83,23 @@ class LitWheat(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         images, targets, image_ids = batch
-        targets = [{k: v for k, v in t.items()} for t in targets]
+        images = list(img for img in images)
+#         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images, targets)
+        outputs = [{k: v for k, v in t.items()} for t in outputs]
         res = {target['image_id'].item(): output for target, output in zip(targets, outputs)}
         self.coco_evaluator.update(res)
 
         return {}
 
     def validation_epoch_end(self, outputs):
+        self.coco_evaluator.synchronize_between_processes()
         self.coco_evaluator.accumulate()
         self.coco_evaluator.summarize()
         # coco main metric
         metric = self.coco_evaluator.coco_eval['bbox'].stats[0]
         metric = torch.as_tensor(metric)
         tensorboard_logs = {'main_score': metric}
+        # re-initialise coco_evaluator after end of each epoch 
+        self.coco_evaluator = CocoEvaluator(self.coco, self.iou_types)
         return {'val_loss': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
