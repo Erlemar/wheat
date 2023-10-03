@@ -12,5 +12,5 @@ tqdm==4.45.0
 torch==1.5.0
 pycocotools==2.0
 hydra==2.5
-Pillow==7.1.2
+Pillow==10.0.1
 scikit_learn==0.23.1
